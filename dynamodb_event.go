@@ -9,22 +9,20 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	DynamoDBEventHandler interface {
-		Handle(ctx context.Context, batch []events.DynamoDBEventRecord, logger nacelle.Logger) error
-	}
+type DynamoDBEventHandler interface {
+	Handle(ctx context.Context, batch []events.DynamoDBEventRecord, logger nacelle.Logger) error
+}
 
-	dynamoDBEventHandlerInitializer interface {
-		nacelle.Initializer
-		DynamoDBEventHandler
-	}
+type dynamoDBEventHandlerInitializer interface {
+	nacelle.Initializer
+	DynamoDBEventHandler
+}
 
-	dynamoDBEventHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
-		handler  DynamoDBEventHandler
-	}
-)
+type dynamoDBEventHandler struct {
+	Logger   nacelle.Logger           `service:"logger"`
+	Services nacelle.ServiceContainer `service:"services"`
+	handler  DynamoDBEventHandler
+}
 
 func NewDynamoDBEventServer(handler DynamoDBEventHandler) nacelle.Process {
 	return NewServer(&dynamoDBEventHandler{

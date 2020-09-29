@@ -8,22 +8,20 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	KinesisRecordHandler interface {
-		Handle(ctx context.Context, record events.KinesisEventRecord, logger nacelle.Logger) error
-	}
+type KinesisRecordHandler interface {
+	Handle(ctx context.Context, record events.KinesisEventRecord, logger nacelle.Logger) error
+}
 
-	kinesisRecordHandlerInitializer interface {
-		nacelle.Initializer
-		KinesisRecordHandler
-	}
+type kinesisRecordHandlerInitializer interface {
+	nacelle.Initializer
+	KinesisRecordHandler
+}
 
-	kinesisRecordHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
-		handler  KinesisRecordHandler
-	}
-)
+type kinesisRecordHandler struct {
+	Logger   nacelle.Logger           `service:"logger"`
+	Services nacelle.ServiceContainer `service:"services"`
+	handler  KinesisRecordHandler
+}
 
 func NewKinesisRecordServer(handler KinesisRecordHandler) nacelle.Process {
 	return NewKinesisEventServer(&kinesisRecordHandler{

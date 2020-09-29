@@ -3,15 +3,13 @@ package lambdabase
 import (
 	"context"
 	"fmt"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/aws/aws-lambda-go/events"
-	. "github.com/efritz/go-mockgen/matchers"
+	mockassert "github.com/efritz/go-mockgen/assert"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
-
-type DynamoDBSuite struct{}
 
 var testDynamoDBPayload = `{
 	"Records": [
@@ -49,7 +47,7 @@ var testDynamoDBPayload = `{
 }`
 
 var testDynamoDBRecords = []events.DynamoDBEventRecord{
-	events.DynamoDBEventRecord{
+	{
 		EventID:   "ev1",
 		EventName: "INSERT",
 		Change: events.DynamoDBStreamRecord{
@@ -59,7 +57,7 @@ var testDynamoDBRecords = []events.DynamoDBEventRecord{
 			},
 		},
 	},
-	events.DynamoDBEventRecord{
+	{
 		EventID:   "ev2",
 		EventName: "INSERT",
 		Change: events.DynamoDBStreamRecord{
@@ -69,7 +67,7 @@ var testDynamoDBRecords = []events.DynamoDBEventRecord{
 			},
 		},
 	},
-	events.DynamoDBEventRecord{
+	{
 		EventID:   "ev3",
 		EventName: "INSERT",
 		Change: events.DynamoDBStreamRecord{
@@ -81,7 +79,7 @@ var testDynamoDBRecords = []events.DynamoDBEventRecord{
 	},
 }
 
-func (s *DynamoDBSuite) TestEventInit(t sweet.T) {
+func TestDynamoDBEventInit(t *testing.T) {
 	handler := NewMockDynamoDBEventHandlerInitializer()
 	outer := &dynamoDBEventHandler{
 		handler:  handler,
@@ -91,11 +89,13 @@ func (s *DynamoDBSuite) TestEventInit(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(BeNil())
-	Expect(handler.InitFunc).To(BeCalledOnceWith(config))
+	assert.Nil(t, err)
+	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
+	})
 }
 
-func (s *DynamoDBSuite) TestEventBadInjection(t sweet.T) {
+func TestDynamoDBEventBadInjection(t *testing.T) {
 	handler := &badInjectionDynamoDBEventHandler{}
 	outer := &dynamoDBEventHandler{
 		handler:  handler,
@@ -105,10 +105,10 @@ func (s *DynamoDBSuite) TestEventBadInjection(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err.Error()).To(ContainSubstring("ServiceA"))
+	assert.Contains(t, err.Error(), "ServiceA")
 }
 
-func (s *DynamoDBSuite) TestEventInitError(t sweet.T) {
+func TestDynamoDBEventInitError(t *testing.T) {
 	handler := NewMockDynamoDBEventHandlerInitializer()
 	handler.InitFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	outer := &dynamoDBEventHandler{
@@ -119,10 +119,10 @@ func (s *DynamoDBSuite) TestEventInitError(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(MatchError("oops"))
+	assert.EqualError(t, err, "oops")
 }
 
-func (s *DynamoDBSuite) TestRecordInit(t sweet.T) {
+func TestDynamoDBRecordInit(t *testing.T) {
 	handler := NewMockDynamoDBRecordHandlerInitializer()
 	outer := &dynamoDBRecordHandler{
 		handler:  handler,
@@ -131,11 +131,13 @@ func (s *DynamoDBSuite) TestRecordInit(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(BeNil())
-	Expect(handler.InitFunc).To(BeCalledOnceWith(config))
+	assert.Nil(t, err)
+	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+		return call.(DynamoDBRecordHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
+	})
 }
 
-func (s *DynamoDBSuite) TestRecordBadInjection(t sweet.T) {
+func TestDynamoDBRecordBadInjection(t *testing.T) {
 	handler := &badInjectionDynamoDBRecordHandler{}
 	outer := &dynamoDBRecordHandler{
 		handler:  handler,
@@ -144,10 +146,10 @@ func (s *DynamoDBSuite) TestRecordBadInjection(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err.Error()).To(ContainSubstring("ServiceA"))
+	assert.Contains(t, err.Error(), "ServiceA")
 }
 
-func (s *DynamoDBSuite) TestRecordInitError(t sweet.T) {
+func TestDynamoDBRecordInitError(t *testing.T) {
 	handler := NewMockDynamoDBRecordHandlerInitializer()
 	handler.InitFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	outer := &dynamoDBRecordHandler{
@@ -157,10 +159,10 @@ func (s *DynamoDBSuite) TestRecordInitError(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(MatchError("oops"))
+	assert.EqualError(t, err, "oops")
 }
 
-func (s *DynamoDBSuite) TestEventInvoke(t sweet.T) {
+func TestDynamoDBEventInvoke(t *testing.T) {
 	handler := NewMockDynamoDBEventHandlerInitializer()
 	outer := &dynamoDBEventHandler{
 		handler: handler,
@@ -168,12 +170,14 @@ func (s *DynamoDBSuite) TestEventInvoke(t sweet.T) {
 	}
 
 	response, err := outer.Invoke(context.Background(), []byte(testDynamoDBPayload))
-	Expect(err).To(BeNil())
-	Expect(response).To(BeNil())
-	Expect(handler.HandleFunc).To(BeCalledOnceWith(BeAnything(), testDynamoDBRecords, BeAnything()))
+	assert.Nil(t, err)
+	assert.Nil(t, response)
+	mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerHandleFuncCall).Arg1, testDynamoDBRecords) // TODO - ergonomics
+	})
 }
 
-func (s *DynamoDBSuite) TestEventInvokeError(t sweet.T) {
+func TestDynamoDBEventInvokeError(t *testing.T) {
 	handler := NewMockDynamoDBEventHandlerInitializer()
 	outer := &dynamoDBEventHandler{
 		handler: handler,
@@ -182,30 +186,32 @@ func (s *DynamoDBSuite) TestEventInvokeError(t sweet.T) {
 
 	handler.HandleFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	_, err := outer.Invoke(context.Background(), []byte(testDynamoDBPayload))
-	Expect(err).To(MatchError("failed to process DynamoDB event (oops)"))
+	assert.EqualError(t, err, "failed to process DynamoDB event (oops)")
 }
 
-func (s *DynamoDBSuite) TestRecordHandle(t sweet.T) {
+func TestDynamoDBRecordHandle(t *testing.T) {
 	handler := NewMockDynamoDBRecordHandlerInitializer()
 	outer := &dynamoDBRecordHandler{handler: handler}
 
 	err := outer.Handle(context.Background(), testDynamoDBRecords, nacelle.NewNilLogger())
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	for _, record := range testDynamoDBRecords {
-		Expect(handler.HandleFunc).To(BeCalledOnceWith(BeAnything(), record, BeAnything()))
+		mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+			return assert.ObjectsAreEqual(call.(DynamoDBRecordHandlerInitializerHandleFuncCall).Arg1, record) // TODO - ergonomics
+		})
 	}
 }
 
-func (s *DynamoDBSuite) TestRecordHandleError(t sweet.T) {
+func TestDynamoDBRecordHandleError(t *testing.T) {
 	handler := NewMockDynamoDBRecordHandlerInitializer()
 	handler.HandleFunc.PushReturn(nil)
 	handler.HandleFunc.PushReturn(fmt.Errorf("oops"))
 	outer := &dynamoDBRecordHandler{handler: handler}
 
 	err := outer.Handle(context.Background(), testDynamoDBRecords, nacelle.NewNilLogger())
-	Expect(err).To(MatchError("failed to process DynamoDB record ev2 (oops)"))
-	Expect(handler.HandleFunc).To(BeCalledN(2))
+	assert.EqualError(t, err, "failed to process DynamoDB record ev2 (oops)")
+	mockassert.CalledN(t, handler.HandleFunc, 2)
 }
 
 //

@@ -8,21 +8,19 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	DynamoDBRecordHandler interface {
-		Handle(ctx context.Context, record events.DynamoDBEventRecord, logger nacelle.Logger) error
-	}
+type DynamoDBRecordHandler interface {
+	Handle(ctx context.Context, record events.DynamoDBEventRecord, logger nacelle.Logger) error
+}
 
-	dynamoDBRecordHandlerInitializer interface {
-		nacelle.Initializer
-		DynamoDBRecordHandler
-	}
+type dynamoDBRecordHandlerInitializer interface {
+	nacelle.Initializer
+	DynamoDBRecordHandler
+}
 
-	dynamoDBRecordHandler struct {
-		Services nacelle.ServiceContainer `service:"services"`
-		handler  DynamoDBRecordHandler
-	}
-)
+type dynamoDBRecordHandler struct {
+	Services nacelle.ServiceContainer `service:"services"`
+	handler  DynamoDBRecordHandler
+}
 
 func NewDynamoDBRecordServer(handler DynamoDBRecordHandler) nacelle.Process {
 	return NewDynamoDBEventServer(&dynamoDBRecordHandler{

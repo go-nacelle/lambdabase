@@ -9,22 +9,20 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	SQSEventHandler interface {
-		Handle(ctx context.Context, batch []events.SQSMessage, logger nacelle.Logger) error
-	}
+type SQSEventHandler interface {
+	Handle(ctx context.Context, batch []events.SQSMessage, logger nacelle.Logger) error
+}
 
-	sqsEventHandlerInitializer interface {
-		nacelle.Initializer
-		SQSEventHandler
-	}
+type sqsEventHandlerInitializer interface {
+	nacelle.Initializer
+	SQSEventHandler
+}
 
-	sqsEventHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
-		handler  SQSEventHandler
-	}
-)
+type sqsEventHandler struct {
+	Logger   nacelle.Logger           `service:"logger"`
+	Services nacelle.ServiceContainer `service:"services"`
+	handler  SQSEventHandler
+}
 
 func NewSQSEventServer(handler SQSEventHandler) nacelle.Process {
 	return NewServer(&sqsEventHandler{

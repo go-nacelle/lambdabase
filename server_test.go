@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"net"
 	"net/rpc"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambda/messages"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
-
-type ServerSuite struct{}
 
 var testConfig = nacelle.NewConfig(nacelle.NewTestEnvSourcer(map[string]string{
 	"_lambda_server_port": "0",
@@ -38,17 +36,17 @@ var testHandler = LambdaHandlerFunc(func(ctx context.Context, payload []byte) ([
 	return serialized, nil
 })
 
-func (s *ServerSuite) TestServeAndStop(t sweet.T) {
+func TestServeAndStop(t *testing.T) {
 	server := makeLambdaServer(testHandler)
 	err := server.Init(testConfig)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	go server.Start()
 	defer server.Stop()
 
 	// Hack internals to get the dynamic port (don't bind to one on host)
 	conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", getDynamicPort(server.listener)))
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	client := rpc.NewClient(conn)
 	defer client.Close()
@@ -60,8 +58,8 @@ func (s *ServerSuite) TestServeAndStop(t sweet.T) {
 
 	response := &messages.InvokeResponse{}
 	err = client.Call("Function.Invoke", request, &response)
-	Expect(err).To(BeNil())
-	Expect(string(response.Payload)).To(Equal(`["foo:bonk","bar:bonk","baz:bonk"]`))
+	assert.Nil(t, err)
+	assert.Equal(t, `["foo:bonk","bar:bonk","baz:bonk"]`, string(response.Payload))
 
 	request = &messages.InvokeRequest{
 		Payload:   []byte(`[123, 456, 789]`),
@@ -69,28 +67,28 @@ func (s *ServerSuite) TestServeAndStop(t sweet.T) {
 	}
 
 	err = client.Call("Function.Invoke", request, &response)
-	Expect(err).To(BeNil())
-	Expect(response.Error.Message).To(Equal("malformed input"))
+	assert.Nil(t, err)
+	assert.Equal(t, "malformed input", response.Error.Message)
 }
 
-func (s *ServerSuite) TestBadInjection(t sweet.T) {
+func TestBadInjection(t *testing.T) {
 	server := NewServer(&badInjectionLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
 	server.Health = nacelle.NewHealth()
 
 	err := server.Init(testConfig)
-	Expect(err.Error()).To(ContainSubstring("ServiceA"))
+	assert.Contains(t, err.Error(), "ServiceA")
 }
 
-func (s *ServerSuite) TestInitError(t sweet.T) {
+func TestInitError(t *testing.T) {
 	server := NewServer(&badInitLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
 	server.Health = nacelle.NewHealth()
 
 	err := server.Init(testConfig)
-	Expect(err).To(MatchError("oops"))
+	assert.EqualError(t, err, "oops")
 }
 
 //

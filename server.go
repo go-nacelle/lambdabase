@@ -12,25 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type (
-	Server struct {
-		Logger      nacelle.Logger           `service:"logger"`
-		Services    nacelle.ServiceContainer `service:"services"`
-		Health      nacelle.Health           `service:"health"`
-		handler     Handler
-		listener    net.Listener
-		server      *rpc.Server
-		once        *sync.Once
-		healthToken healthToken
-	}
+type Server struct {
+	Logger      nacelle.Logger           `service:"logger"`
+	Services    nacelle.ServiceContainer `service:"services"`
+	Health      nacelle.Health           `service:"health"`
+	handler     Handler
+	listener    net.Listener
+	server      *rpc.Server
+	once        *sync.Once
+	healthToken healthToken
+}
 
-	Handler interface {
-		nacelle.Initializer
-		lambda.Handler
-	}
+type Handler interface {
+	nacelle.Initializer
+	lambda.Handler
+}
 
-	LambdaHandlerFunc func(ctx context.Context, payload []byte) ([]byte, error)
-)
+type LambdaHandlerFunc func(ctx context.Context, payload []byte) ([]byte, error)
 
 func (f LambdaHandlerFunc) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
 	return f(ctx, payload)
