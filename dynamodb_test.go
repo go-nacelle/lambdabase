@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	mockassert "github.com/efritz/go-mockgen/assert"
+	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
 	"github.com/go-nacelle/nacelle"
 	"github.com/stretchr/testify/assert"
 )
@@ -90,7 +90,7 @@ func TestDynamoDBEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
 	})
 }
@@ -132,7 +132,7 @@ func TestDynamoDBRecordInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return call.(DynamoDBRecordHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
 	})
 }
@@ -172,7 +172,7 @@ func TestDynamoDBEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testDynamoDBPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerHandleFuncCall).Arg1, testDynamoDBRecords) // TODO - ergonomics
 	})
 }
@@ -197,7 +197,7 @@ func TestDynamoDBRecordHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, record := range testDynamoDBRecords {
-		mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 			return assert.ObjectsAreEqual(call.(DynamoDBRecordHandlerInitializerHandleFuncCall).Arg1, record) // TODO - ergonomics
 		})
 	}

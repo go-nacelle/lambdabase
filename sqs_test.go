@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	mockassert "github.com/efritz/go-mockgen/assert"
+	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
 	"github.com/go-nacelle/nacelle"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +36,7 @@ func TestSQSEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(SqsEventHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
 	})
 }
@@ -79,7 +79,7 @@ func TestSQSMessageInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(SqsMessageHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
 	})
 }
@@ -121,7 +121,7 @@ func TestSQSEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testSQSPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(SqsEventHandlerInitializerHandleFuncCall).Arg1, testSQSMessages) // TODO - ergonomics
 	})
 }
@@ -146,7 +146,7 @@ func TestSQSMessageHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, message := range testSQSMessages {
-		mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 			return assert.ObjectsAreEqual(call.(SqsMessageHandlerInitializerHandleFuncCall).Arg1, message) // TODO - ergonomics
 		})
 	}

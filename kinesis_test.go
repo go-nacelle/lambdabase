@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	mockassert "github.com/efritz/go-mockgen/assert"
+	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
 	"github.com/go-nacelle/nacelle"
 	"github.com/stretchr/testify/assert"
 )
@@ -72,7 +72,7 @@ func TestKinesisEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return call.(KinesisEventHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
 	})
 }
@@ -115,7 +115,7 @@ func TestKinesisRecordInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceMatching(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
 		return call.(KinesisRecordHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
 	})
 }
@@ -157,7 +157,7 @@ func TestKinesisEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testKinesisPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 		return assert.ObjectsAreEqual(call.(KinesisEventHandlerInitializerHandleFuncCall).Arg1, testKinesisRecords) // TODO - ergonomics
 	})
 }
@@ -182,7 +182,7 @@ func TestKinesisRecordHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, record := range testKinesisRecords {
-		mockassert.CalledOnceMatching(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
+		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
 			return assert.ObjectsAreEqual(call.(KinesisRecordHandlerInitializerHandleFuncCall).Arg1, record) // TODO - ergonomics
 		})
 	}
