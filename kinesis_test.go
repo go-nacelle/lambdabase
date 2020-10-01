@@ -72,9 +72,7 @@ func TestKinesisEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return call.(KinesisEventHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestKinesisEventBadInjection(t *testing.T) {
@@ -115,9 +113,7 @@ func TestKinesisRecordInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return call.(KinesisRecordHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestKinesisRecordBadInjection(t *testing.T) {
@@ -157,9 +153,7 @@ func TestKinesisEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testKinesisPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(KinesisEventHandlerInitializerHandleFuncCall).Arg1, testKinesisRecords) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, testKinesisRecords))
 }
 
 func TestKinesisEventInvokeError(t *testing.T) {
@@ -182,9 +176,7 @@ func TestKinesisRecordHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, record := range testKinesisRecords {
-		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-			return assert.ObjectsAreEqual(call.(KinesisRecordHandlerInitializerHandleFuncCall).Arg1, record) // TODO - ergonomics
-		})
+		mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, record))
 	}
 }
 

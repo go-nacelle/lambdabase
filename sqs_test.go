@@ -36,9 +36,7 @@ func TestSQSEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(SqsEventHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestSQSEventBadInjection(t *testing.T) {
@@ -79,9 +77,7 @@ func TestSQSMessageInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(SqsMessageHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestSQSMessageBadInjection(t *testing.T) {
@@ -121,9 +117,7 @@ func TestSQSEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testSQSPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(SqsEventHandlerInitializerHandleFuncCall).Arg1, testSQSMessages) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, testSQSMessages))
 }
 
 func TestSQSEventInvokeError(t *testing.T) {
@@ -146,9 +140,7 @@ func TestSQSMessageHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, message := range testSQSMessages {
-		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-			return assert.ObjectsAreEqual(call.(SqsMessageHandlerInitializerHandleFuncCall).Arg1, message) // TODO - ergonomics
-		})
+		mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, message))
 	}
 }
 

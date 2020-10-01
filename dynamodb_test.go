@@ -90,9 +90,7 @@ func TestDynamoDBEventInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerInitFuncCall).Arg0, config) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestDynamoDBEventBadInjection(t *testing.T) {
@@ -132,9 +130,7 @@ func TestDynamoDBRecordInit(t *testing.T) {
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
 	assert.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, func(t assert.TestingT, call interface{}) bool {
-		return call.(DynamoDBRecordHandlerInitializerInitFuncCall).Arg0 == config // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
 func TestDynamoDBRecordBadInjection(t *testing.T) {
@@ -172,9 +168,7 @@ func TestDynamoDBEventInvoke(t *testing.T) {
 	response, err := outer.Invoke(context.Background(), []byte(testDynamoDBPayload))
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-	mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-		return assert.ObjectsAreEqual(call.(DynamoDBEventHandlerInitializerHandleFuncCall).Arg1, testDynamoDBRecords) // TODO - ergonomics
-	})
+	mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, testDynamoDBRecords))
 }
 
 func TestDynamoDBEventInvokeError(t *testing.T) {
@@ -197,9 +191,7 @@ func TestDynamoDBRecordHandle(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, record := range testDynamoDBRecords {
-		mockassert.CalledOnceWith(t, handler.HandleFunc, func(t assert.TestingT, call interface{}) bool {
-			return assert.ObjectsAreEqual(call.(DynamoDBRecordHandlerInitializerHandleFuncCall).Arg1, record) // TODO - ergonomics
-		})
+		mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, record))
 	}
 }
 
